@@ -581,17 +581,20 @@ def main():
                         color: #4caf50;
                         font-size: 13px;
                         white-space: nowrap;
+                        min-width: 70px;
+                        justify-content: flex-start;
                     ">
                         <div style="
                             width: 8px;
                             height: 8px;
                             background: #4caf50;
                             border-radius: 50%;
+                            flex-shrink: 0;
                         "></div>
                         已完成
                     </div>
-                    <div style="color: #999; font-size: 13px; white-space: nowrap;">总长度：{total_length}</div>
-                    <div style="color: #999; font-size: 13px; white-space: nowrap;">耗时：{item['processing_time']}</div>
+                    <div style="color: #999; font-size: 13px; white-space: nowrap; min-width: 120px; text-align: left;">总长度：{total_length}</div>
+                    <div style="color: #999; font-size: 13px; white-space: nowrap; min-width: 100px; text-align: left;">耗时：{item['processing_time']}</div>
                 </div>
                 """, unsafe_allow_html=True)
             
