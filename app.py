@@ -241,14 +241,24 @@ def process_video(config, progress_container=None):
         """, unsafe_allow_html=True)
         progress_bar.progress(10)
         
-        transcript_items, detected_lang, title, source_name, chapters = extract_transcript_with_fallback(
-            config["url"],
-            preferred_langs=config["source_langs"],
-            workdir=video_outdir
-        )
+        try:
+            transcript_items, detected_lang, title, source_name, chapters = extract_transcript_with_fallback(
+                config["url"],
+                preferred_langs=config["source_langs"],
+                workdir=video_outdir
+            )
+        except Exception as e:
+            error_msg = str(e)
+            if "timeout" in error_msg.lower() or "timed out" in error_msg.lower():
+                st.error(f"❌ 提取字幕超时（视频可能过长）。错误信息：{error_msg}")
+            else:
+                st.error(f"❌ 提取字幕失败：{error_msg}")
+            st.info("💡 提示：对于超长视频（>20分钟），可能需要更长时间。请稍后重试或尝试较短视频。")
+            return None
         
         if not transcript_items:
-            st.error("❌ 未能获取到任何字幕，请检查视频是否有字幕")
+            st.error("❌ 未能获取到任何字幕，请检查视频是否有字幕。")
+            st.info("💡 可能的原因：\n1. 视频确实没有字幕\n2. 视频过长导致超时（Streamlit Cloud 限制）\n3. Cookie 已过期，需要重新配置")
             return None
         
         status_text.success(f"✅ 提取字幕完成！检测到语言：{detected_lang}")

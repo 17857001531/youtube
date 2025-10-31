@@ -144,24 +144,54 @@ def _try_ytdlp_vtt(url: str, workdir: str) -> Tuple[List[Dict], Optional[str], O
 
     attempts = [
         [
-            sys.executable, '-m', 'yt_dlp', '--skip-download', '--write-sub', '--sub-format', 'vtt', '--convert-subs', 'vtt',
+            sys.executable, '-m', 'yt_dlp', 
+            '--skip-download', 
+            '--write-sub', 
+            '--sub-format', 'vtt', 
+            '--convert-subs', 'vtt',
             # 仅限常见语言，避免 live_chat/*/all 导致噪声与过密时间轴
             '--sub-langs', 'en.*,en,zh-Hans,zh-Hant,zh-CN,zh-TW,ja,ko',
-            '--write-info-json', '-o', os.path.join(workdir, '%(id)s.%(ext)s'),
+            '--write-info-json', 
+            '--no-warnings',
+            '--quiet',
+            '--no-progress',
+            '-o', os.path.join(workdir, '%(id)s.%(ext)s'),
             *cookie_args, url,
         ],
         [
-            sys.executable, '-m', 'yt_dlp', '--skip-download', '--write-auto-sub', '--sub-format', 'vtt', '--convert-subs', 'vtt',
-            '--write-info-json', '-o', os.path.join(workdir, '%(id)s.%(ext)s'),
+            sys.executable, '-m', 'yt_dlp', 
+            '--skip-download', 
+            '--write-auto-sub', 
+            '--sub-format', 'vtt', 
+            '--convert-subs', 'vtt',
+            '--write-info-json',
+            '--no-warnings',
+            '--quiet',
+            '--no-progress',
+            '-o', os.path.join(workdir, '%(id)s.%(ext)s'),
             *cookie_args, url,
         ],
     ]
     ran_ok = False
+    timeout_seconds = 300  # 5分钟超时，适合长视频
     for cmd in attempts:
         try:
-            subprocess.run(cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            result = subprocess.run(
+                cmd, 
+                check=True, 
+                stdout=subprocess.PIPE, 
+                stderr=subprocess.PIPE,
+                timeout=timeout_seconds,
+                text=True
+            )
             ran_ok = True
             break
+        except subprocess.TimeoutExpired:
+            # 超时：继续尝试下一个方法
+            continue
+        except subprocess.CalledProcessError as e:
+            # 命令执行失败：继续尝试下一个方法
+            continue
         except Exception:
             continue
     if not ran_ok:
